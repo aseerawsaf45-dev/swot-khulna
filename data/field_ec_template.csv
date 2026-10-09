@@ -1,0 +1,2 @@
+station_id,reach_id,observed_at,latitude,longitude,ec_value,ec_unit,water_temp_c,quality_flag,source_id
+KH-001,P-14,2026-09-01T08:00:00+06:00,22.70,89.50,4.2,dS/m,29.1,valid,field_campaign_01

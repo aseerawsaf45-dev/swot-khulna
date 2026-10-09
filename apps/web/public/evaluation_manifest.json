@@ -1,0 +1,12 @@
+{
+  "samples": 100,
+  "train_samples": 80,
+  "test_samples": 20,
+  "is_synthetic": true,
+  "pinn_mae": 0.4199906885623932,
+  "pinn_rmse": 0.4529419068682306,
+  "baseline_mae": 0.6604081392288208,
+  "baseline_rmse": 0.7239765375350538,
+  "pinn_wins": true,
+  "pinn_checksum": "41667f14c23c30f7c155c29e2af86e72f2bb1490cca063b292acbf6b0cb02557"
+}
