@@ -21,6 +21,9 @@ import {
   CheckCircle2,
   Droplets,
   AlertTriangle,
+  GitCompare,
+  Clock,
+  Compass,
 } from "lucide-react";
 
 const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
@@ -53,10 +56,13 @@ export default function MapExplorerPage() {
   const [horizon, setHorizon] = useState<"now" | "7d" | "14d">("now");
   const [riskFilter, setRiskFilter] = useState<"all" | "critical" | "warning" | "nominal">("all");
   const [currentMode, setCurrentMode] = useState<"all" | "salinity" | "gauges" | "swot">("all");
+  const [selectedBasin, setSelectedBasin] = useState<"all" | "Passur" | "Shibsa" | "Gorai" | "Rupsha">("all");
 
   // Workbench & Drawer states
   const [activePanel, setActivePanel] = useState<"directory" | "layers" | "guide" | null>(null);
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
+  const [compareSite, setCompareSite] = useState<Site | null>(null);
+  const [isComparing, setIsComparing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [flyToCoords, setFlyToCoords] = useState<[number, number] | null>(null);
   const [showLegend, setShowLegend] = useState(false);
@@ -100,15 +106,31 @@ export default function MapExplorerPage() {
     return forecastMap[selectedSite.id] || null;
   }, [selectedSite, forecastMap]);
 
-  // Filtered station directory
+  const compareForecast = useMemo(() => {
+    if (!compareSite) return null;
+    return forecastMap[compareSite.id] || null;
+  }, [compareSite, forecastMap]);
+
+  // Filtered station directory by search, risk, and river basin
   const filteredDirectory = useMemo(() => {
     return allSites.filter(site => {
+      // Basin filter
+      if (selectedBasin !== "all") {
+        const text = `${site.name} ${site.description} ${site.id}`.toLowerCase();
+        if (!text.includes(selectedBasin.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         if (!site.name.toLowerCase().includes(q) && !site.id.toLowerCase().includes(q) && !site.description.toLowerCase().includes(q)) {
           return false;
         }
       }
+
+      // Risk filter
       const forecast = forecastMap[site.id];
       const val = forecast?.value || 0;
       const isSalinity = forecast?.target_variable?.includes("Salinity");
@@ -117,7 +139,7 @@ export default function MapExplorerPage() {
       if (riskFilter === "nominal" && isSalinity && val >= 2.5) return false;
       return true;
     });
-  }, [allSites, searchQuery, riskFilter, forecastMap]);
+  }, [allSites, searchQuery, riskFilter, selectedBasin, forecastMap]);
 
   // Mode Preset Quick Switcher
   const handleModePreset = (mode: "all" | "salinity" | "gauges" | "swot") => {
@@ -150,12 +172,33 @@ export default function MapExplorerPage() {
   };
 
   const handleSelectSite = (site: Site | null) => {
-    setSelectedSite(site);
-    if (site) {
-      setFlyToCoords([site.latitude, site.longitude]);
-      if (typeof window !== "undefined" && window.innerWidth < 768) {
-        setActivePanel(null);
+    if (isComparing) {
+      if (!selectedSite) {
+        setSelectedSite(site);
+      } else {
+        setCompareSite(site);
       }
+    } else {
+      setSelectedSite(site);
+      if (site) {
+        setFlyToCoords([site.latitude, site.longitude]);
+        if (typeof window !== "undefined" && window.innerWidth < 768) {
+          setActivePanel(null);
+        }
+      }
+    }
+  };
+
+  const handleSelectCorridor = (corridor: string) => {
+    if (corridor === "Passur") {
+      setSelectedBasin("Passur");
+      setFlyToCoords([22.464, 89.600]);
+    } else if (corridor === "Shibsa") {
+      setSelectedBasin("Shibsa");
+      setFlyToCoords([22.550, 89.520]);
+    } else if (corridor === "Gorai") {
+      setSelectedBasin("Gorai");
+      setFlyToCoords([23.540, 89.516]);
     }
   };
 
@@ -223,8 +266,38 @@ export default function MapExplorerPage() {
           </div>
         </div>
 
-        {/* Right: Workspace Toggle Buttons */}
-        <div className="flex items-center gap-1.5 justify-end shrink-0">
+        {/* Right: Workspace Toggle Buttons & Direct Basemap Switch */}
+        <div className="flex items-center gap-2 justify-end shrink-0">
+          
+          {/* Quick Basemap Switcher */}
+          <div className="hidden lg:flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/5 text-xs">
+            <button
+              onClick={() => setBasemap("dark")}
+              className={`px-2 py-1 rounded-lg font-mono text-[10px] font-semibold transition-all ${
+                basemap === "dark" ? "bg-white/20 text-white font-bold" : "text-muted-foreground hover:text-white"
+              }`}
+            >
+              DARK
+            </button>
+            <button
+              onClick={() => setBasemap("satellite")}
+              className={`px-2 py-1 rounded-lg font-mono text-[10px] font-semibold transition-all ${
+                basemap === "satellite" ? "bg-white/20 text-white font-bold" : "text-muted-foreground hover:text-white"
+              }`}
+            >
+              SATELLITE
+            </button>
+            <button
+              onClick={() => setBasemap("osm")}
+              className={`px-2 py-1 rounded-lg font-mono text-[10px] font-semibold transition-all ${
+                basemap === "osm" ? "bg-white/20 text-white font-bold" : "text-muted-foreground hover:text-white"
+              }`}
+            >
+              TOPO
+            </button>
+          </div>
+
+          {/* Station Directory Button */}
           <button
             onClick={() => setActivePanel(activePanel === "directory" ? null : "directory")}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-all ${
@@ -240,6 +313,7 @@ export default function MapExplorerPage() {
             </span>
           </button>
 
+          {/* Layers & Style Button */}
           <button
             onClick={() => setActivePanel(activePanel === "layers" ? null : "layers")}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-all ${
@@ -249,9 +323,10 @@ export default function MapExplorerPage() {
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
-            <span>Layers & Style</span>
+            <span className="hidden sm:inline">Layers</span>
           </button>
 
+          {/* Legend Button */}
           <button
             onClick={() => setShowLegend(!showLegend)}
             className={`p-2 rounded-xl text-xs border transition-colors ${
@@ -287,7 +362,7 @@ export default function MapExplorerPage() {
               <div className="flex items-center gap-1.5 shrink-0">
                 <button
                   onClick={() => setFlyToCoords([22.464, 89.600])}
-                  className="px-2 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-[10px] font-mono font-bold transition-colors"
+                  className="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-[10px] font-mono font-bold transition-colors"
                 >
                   Focus Breach
                 </button>
@@ -303,6 +378,42 @@ export default function MapExplorerPage() {
           </div>
         )}
 
+        {/* BOTTOM FLOATING HORIZON SCRUBBER */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex justify-center">
+          <div className="bg-[#08131f]/95 backdrop-blur-xl border border-white/15 px-3 py-1.5 rounded-2xl shadow-2xl pointer-events-auto flex items-center gap-2 text-xs">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1">
+              <Clock className="w-3 h-3 text-primary" />
+              <span className="hidden sm:inline">Lead Horizon:</span>
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setHorizon("now")}
+                className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all ${
+                  horizon === "now" ? "bg-primary text-black font-bold shadow" : "text-muted-foreground hover:text-white"
+                }`}
+              >
+                Now
+              </button>
+              <button
+                onClick={() => setHorizon("7d")}
+                className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all ${
+                  horizon === "7d" ? "bg-amber-500 text-black font-bold shadow" : "text-muted-foreground hover:text-white"
+                }`}
+              >
+                +7 Days (PINN)
+              </button>
+              <button
+                onClick={() => setHorizon("14d")}
+                className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all ${
+                  horizon === "14d" ? "bg-rose-500 text-white font-bold shadow" : "text-muted-foreground hover:text-white"
+                }`}
+              >
+                +14 Days (Peak)
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Leaflet Map Canvas */}
         <MapWrapper
           selectedSiteId={selectedSite?.id || null}
@@ -316,6 +427,7 @@ export default function MapExplorerPage() {
           searchQuery={searchQuery}
           riskFilter={riskFilter}
           flyToCoords={flyToCoords}
+          onSelectCorridor={handleSelectCorridor}
         />
 
         {/* 3. STUDIO WORKBENCH (DRAWER / BOTTOM SHEET) */}
@@ -382,6 +494,42 @@ export default function MapExplorerPage() {
                         <X className="w-3.5 h-3.5" />
                       </button>
                     )}
+                  </div>
+
+                  {/* River Basin Filter Tabs */}
+                  <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none text-[10px]">
+                    <button
+                      onClick={() => setSelectedBasin("all")}
+                      className={`px-2 py-1 rounded-lg shrink-0 font-medium transition-all ${
+                        selectedBasin === "all" ? "bg-white/20 text-white font-bold" : "bg-white/5 text-muted-foreground hover:text-white"
+                      }`}
+                    >
+                      All Rivers
+                    </button>
+                    <button
+                      onClick={() => setSelectedBasin("Passur")}
+                      className={`px-2 py-1 rounded-lg shrink-0 font-medium transition-all ${
+                        selectedBasin === "Passur" ? "bg-rose-500/25 text-rose-300 font-bold border border-rose-500/40" : "bg-white/5 text-muted-foreground hover:text-white"
+                      }`}
+                    >
+                      Passur River
+                    </button>
+                    <button
+                      onClick={() => setSelectedBasin("Shibsa")}
+                      className={`px-2 py-1 rounded-lg shrink-0 font-medium transition-all ${
+                        selectedBasin === "Shibsa" ? "bg-amber-500/25 text-amber-300 font-bold border border-amber-500/40" : "bg-white/5 text-muted-foreground hover:text-white"
+                      }`}
+                    >
+                      Shibsa Estuary
+                    </button>
+                    <button
+                      onClick={() => setSelectedBasin("Gorai")}
+                      className={`px-2 py-1 rounded-lg shrink-0 font-medium transition-all ${
+                        selectedBasin === "Gorai" ? "bg-sky-500/25 text-sky-300 font-bold border border-sky-500/40" : "bg-white/5 text-muted-foreground hover:text-white"
+                      }`}
+                    >
+                      Gorai Inflow
+                    </button>
                   </div>
 
                   {/* Risk Filter Chips */}
@@ -501,42 +649,6 @@ export default function MapExplorerPage() {
                     </div>
                   </div>
 
-                  {/* Lead Time Horizon */}
-                  <div className="flex flex-col space-y-2 border-t border-white/10 pt-3">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Forecast Horizon</span>
-                      <span className="text-[10px] font-mono text-primary font-bold">
-                        {horizon === "now" ? "Observed Telemetry" : horizon === "7d" ? "+7 Days Forward" : "+14 Days Peak Ingress"}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-1 bg-white/5 p-1 rounded-xl border border-white/5">
-                      <button
-                        onClick={() => setHorizon("now")}
-                        className={`py-1 text-xs font-semibold rounded-lg transition-all ${
-                          horizon === "now" ? "bg-primary text-black font-bold shadow" : "text-muted-foreground hover:text-white"
-                        }`}
-                      >
-                        Now
-                      </button>
-                      <button
-                        onClick={() => setHorizon("7d")}
-                        className={`py-1 text-xs font-semibold rounded-lg transition-all ${
-                          horizon === "7d" ? "bg-amber-500 text-black font-bold shadow" : "text-muted-foreground hover:text-white"
-                        }`}
-                      >
-                        +7 Days
-                      </button>
-                      <button
-                        onClick={() => setHorizon("14d")}
-                        className={`py-1 text-xs font-semibold rounded-lg transition-all ${
-                          horizon === "14d" ? "bg-rose-500 text-white font-bold shadow" : "text-muted-foreground hover:text-white"
-                        }`}
-                      >
-                        +14 Days
-                      </button>
-                    </div>
-                  </div>
-
                   {/* Spatial Layers */}
                   <div className="flex flex-col space-y-2 border-t border-white/10 pt-3">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Spatial Data Overlays</span>
@@ -628,7 +740,7 @@ export default function MapExplorerPage() {
           </div>
         )}
 
-        {/* 4. STATION INSPECTOR DRAWER WITH ENHANCED ADVISORY */}
+        {/* 4. STATION INSPECTOR DRAWER / COMPARISON MODE */}
         {selectedSite && (
           <div className="absolute inset-x-2 bottom-2 md:bottom-3 md:top-3 md:right-3 md:left-auto z-30 max-h-[80vh] md:max-h-none md:h-auto md:w-96 flex flex-col animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-right-4 duration-300">
             <div className="h-full bg-[#08131f]/95 backdrop-blur-2xl border border-white/15 p-4 shadow-2xl flex flex-col justify-between overflow-y-auto rounded-2xl scrollbar-thin">
@@ -650,12 +762,23 @@ export default function MapExplorerPage() {
                     <h3 className="text-base font-bold text-white leading-tight">{selectedSite.name}</h3>
                   </div>
                   
-                  <button
-                    onClick={() => setSelectedSite(null)}
-                    className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-muted-foreground hover:text-white transition-colors shrink-0"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setIsComparing(!isComparing)}
+                      className={`p-1.5 rounded-lg border text-xs transition-colors ${
+                        isComparing ? "bg-primary text-black border-primary" : "bg-white/5 text-muted-foreground hover:text-white border-white/10"
+                      }`}
+                      title="Toggle Reach Comparison Mode"
+                    >
+                      <GitCompare className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => { setSelectedSite(null); setCompareSite(null); setIsComparing(false); }}
+                      className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-muted-foreground hover:text-white transition-colors shrink-0"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Metric Badges */}
@@ -712,6 +835,21 @@ export default function MapExplorerPage() {
                     <ForecastChart reachId={selectedSite.id} showBadge={false} />
                   </div>
                 </div>
+
+                {/* Comparison Card (if comparing) */}
+                {isComparing && compareSite && (
+                  <div className="p-3 rounded-2xl bg-white/5 border border-primary/30 flex flex-col space-y-2">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-white">Comparing with {compareSite.name}</span>
+                      <span className="text-[10px] font-mono text-primary">
+                        {compareForecast ? `${compareForecast.value.toFixed(1)} ${compareForecast.unit}` : ""}
+                      </span>
+                    </div>
+                    <div className="w-full h-28 rounded-xl overflow-hidden border border-white/10 bg-black/40">
+                      <ForecastChart reachId={compareSite.id} showBadge={false} />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons */}

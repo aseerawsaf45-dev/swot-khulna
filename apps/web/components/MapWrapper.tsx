@@ -44,6 +44,7 @@ export interface MapWrapperProps {
   searchQuery?: string;
   riskFilter?: "all" | "critical" | "warning" | "nominal";
   flyToCoords?: [number, number] | null;
+  onSelectCorridor?: (corridorName: string) => void;
 }
 
 // Controller for programmatic smooth map pans/zooms
@@ -57,51 +58,47 @@ function MapController({ coords, zoom }: { coords: [number, number] | null; zoom
   return null;
 }
 
-// High-tech SVG divIcons
-const createGaugeIcon = (risk: string, isSelected: boolean) => {
-  const color = risk === "CRITICAL" ? "#f43f5e" : risk === "WARNING" ? "#f59e0b" : "#38bdf8";
+// High-information beacon SVG divIcons with live value pills
+const createBeaconIcon = (
+  type: "swot" | "gauge",
+  risk: string,
+  isSelected: boolean,
+  displayValue: string
+) => {
+  const isCrit = risk === "CRITICAL";
+  const isWarn = risk === "WARNING";
+  const color = isCrit ? "#f43f5e" : isWarn ? "#f59e0b" : type === "swot" ? "#57d6d0" : "#38bdf8";
+  const badgeBg = isCrit 
+    ? "rgba(244, 63, 94, 0.25)" 
+    : isWarn 
+    ? "rgba(245, 158, 11, 0.25)" 
+    : "rgba(8, 19, 31, 0.85)";
   const glow = isSelected 
-    ? `box-shadow: 0 0 0 5px ${color}35, 0 0 20px ${color}; transform: scale(1.2);` 
-    : risk === "CRITICAL"
-    ? `box-shadow: 0 0 0 3px ${color}25, 0 0 12px ${color}80;`
+    ? `box-shadow: 0 0 0 6px ${color}40, 0 0 25px ${color}; transform: scale(1.15);` 
+    : isCrit
+    ? `box-shadow: 0 0 0 3px ${color}30, 0 0 16px ${color}80;`
     : "";
   
-  return L.divIcon({
-    className: "custom-gauge-icon",
-    html: `
-      <div style="width:28px;height:28px;border-radius:50%;background:#08131f;border:2.5px solid ${color};display:flex;align-items:center;justify-content:center;color:${color};${glow}transition:all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);cursor:pointer;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
-        </svg>
-      </div>
-    `,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-    popupAnchor: [0, -16],
-  });
-};
+  const iconSvg = type === "swot" 
+    ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/><circle cx="12" cy="12" r="4"/></svg>`
+    : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>`;
 
-const createSwotIcon = (risk: string, isSelected: boolean) => {
-  const color = risk === "CRITICAL" ? "#f43f5e" : risk === "WARNING" ? "#f59e0b" : "#57d6d0";
-  const glow = isSelected 
-    ? `box-shadow: 0 0 0 6px ${color}35, 0 0 22px ${color}; transform: scale(1.2);` 
-    : risk === "CRITICAL"
-    ? `box-shadow: 0 0 0 3px ${color}25, 0 0 14px ${color}80;`
-    : "";
-  
   return L.divIcon({
-    className: "custom-swot-icon",
+    className: "custom-beacon-icon",
     html: `
-      <div style="width:32px;height:32px;border-radius:10px;background:#08131f;border:2.5px solid ${color};display:flex;align-items:center;justify-content:center;color:${color};${glow}transition:all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);cursor:pointer;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/>
-          <circle cx="12" cy="12" r="4"/>
-        </svg>
+      <div style="position:relative;display:flex;align-items:center;cursor:pointer;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.7));">
+        <div style="width:28px;height:28px;border-radius:${type === 'swot' ? '8px' : '50%'};background:#08131f;border:2.5px solid ${color};display:flex;align-items:center;justify-content:center;color:${color};${glow}transition:all 0.25s ease;shrink:0;">
+          ${iconSvg}
+        </div>
+        ${displayValue ? `
+          <div style="margin-left:5px;padding:1.5px 6px;border-radius:6px;background:${badgeBg};border:1px solid ${color}60;color:${isCrit ? '#fda4af' : isWarn ? '#fde68a' : '#f1f6f8'};font-family:monospace;font-size:10px;font-weight:700;white-space:nowrap;backdrop-filter:blur(6px);box-shadow:0 2px 6px rgba(0,0,0,0.5);">
+            ${displayValue}
+          </div>
+        ` : ''}
       </div>
     `,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
+    iconSize: [85, 28],
+    iconAnchor: [14, 14],
     popupAnchor: [0, -18],
   });
 };
@@ -161,6 +158,7 @@ export default function MapWrapper({
   searchQuery = "",
   riskFilter = "all",
   flyToCoords = null,
+  onSelectCorridor,
 }: MapWrapperProps) {
   const [mounted, setMounted] = useState(false);
   const [sites, setSites] = useState<Site[]>([]);
@@ -230,7 +228,7 @@ export default function MapWrapper({
       <div className="w-full h-full bg-[#05070d] flex items-center justify-center text-muted-foreground text-xs">
         <div className="flex flex-col items-center gap-2">
           <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <span>Synchronizing Radar & Bathymetry...</span>
+          <span className="font-mono">Synchronizing Radar & Bathymetry...</span>
         </div>
       </div>
     );
@@ -286,7 +284,7 @@ export default function MapWrapper({
           border-radius: 8px !important;
           font-size: 11px !important;
           font-weight: 600 !important;
-          padding: 4px 8px !important;
+          padding: 5px 9px !important;
         }
         .leaflet-tooltip-top:before {
           border-top-color: #08131f !important;
@@ -318,7 +316,7 @@ export default function MapWrapper({
           />
         )}
 
-        {/* Salinity Intrusion River Corridors */}
+        {/* Salinity Intrusion River Corridors with Rich Interactive Tooltips */}
         {showSalinityFront && (
           <>
             {/* Marine / Estuarine Ingress Corridor (High Salinity >8.0 dS/m) */}
@@ -331,9 +329,15 @@ export default function MapWrapper({
                 lineCap: "round",
                 dashArray: horizon === "14d" ? "10, 8" : undefined,
               }}
+              eventHandlers={{
+                click: () => onSelectCorridor && onSelectCorridor("Passur"),
+              }}
             >
               <Tooltip sticky>
-                <span className="text-rose-400">Passur Marine Ingress (&gt;8.0 dS/m)</span>
+                <div className="flex flex-col space-y-0.5">
+                  <span className="font-bold text-rose-400">Passur Marine Ingress Corridor</span>
+                  <span className="text-[10px] text-muted-foreground font-mono">Bay of Bengal → Mongla Port (&gt;8.0 dS/m)</span>
+                </div>
               </Tooltip>
             </Polyline>
 
@@ -347,9 +351,15 @@ export default function MapWrapper({
                 lineCap: "round",
                 dashArray: "8, 6",
               }}
+              eventHandlers={{
+                click: () => onSelectCorridor && onSelectCorridor("Passur"),
+              }}
             >
               <Tooltip sticky>
-                <span className="text-amber-400">Estuary Risk Front (4.0 - 8.0 dS/m)</span>
+                <div className="flex flex-col space-y-0.5">
+                  <span className="font-bold text-amber-400">Estuary Risk Front (4.0 - 8.0 dS/m)</span>
+                  <span className="text-[10px] text-muted-foreground font-mono">Mongla → Khulna Core Polders</span>
+                </div>
               </Tooltip>
             </Polyline>
 
@@ -362,9 +372,15 @@ export default function MapWrapper({
                 opacity: 0.8,
                 lineCap: "round",
               }}
+              eventHandlers={{
+                click: () => onSelectCorridor && onSelectCorridor("Shibsa"),
+              }}
             >
               <Tooltip sticky>
-                <span className="text-amber-400">Shibsa Mangrove Corridor</span>
+                <div className="flex flex-col space-y-0.5">
+                  <span className="font-bold text-amber-400">Shibsa Mangrove Corridor</span>
+                  <span className="text-[10px] text-muted-foreground font-mono">Western Tidal Channel (4.2 dS/m)</span>
+                </div>
               </Tooltip>
             </Polyline>
 
@@ -377,9 +393,15 @@ export default function MapWrapper({
                 opacity: 0.85,
                 lineCap: "round",
               }}
+              eventHandlers={{
+                click: () => onSelectCorridor && onSelectCorridor("Gorai"),
+              }}
             >
               <Tooltip sticky>
-                <span className="text-sky-400">Gorai Freshwater Buffer (&lt;2.0 dS/m)</span>
+                <div className="flex flex-col space-y-0.5">
+                  <span className="font-bold text-sky-400">Gorai Freshwater Buffer (&lt;2.0 dS/m)</span>
+                  <span className="text-[10px] text-muted-foreground font-mono">Ganges Dilution Outflow to Delta</span>
+                </div>
               </Tooltip>
             </Polyline>
           </>
@@ -399,12 +421,15 @@ export default function MapWrapper({
             }}
           >
             <Tooltip sticky>
-              <span className="text-amber-400">4.0 dS/m Agricultural Hazard Ring</span>
+              <div className="flex flex-col space-y-0.5">
+                <span className="font-bold text-amber-400 font-mono">4.0 dS/m Agricultural Hazard Ring</span>
+                <span className="text-[10px] text-muted-foreground">Boro rice crops inside this zone face yield loss</span>
+              </div>
             </Tooltip>
           </Circle>
         )}
 
-        {/* Station and Reach Markers */}
+        {/* Station and Reach Markers with Live Pill Badges */}
         {filteredSites.map((site) => {
           const isSwot = site.id.startsWith("3124") || site.id.toLowerCase().includes("swot");
           const isSelected = selectedSiteId === site.id;
@@ -412,15 +437,30 @@ export default function MapWrapper({
 
           // Determine risk level based on forecast and lead time horizon
           let risk = "NOMINAL";
-          if (forecast && forecast.target_variable.includes("Salinity")) {
+          let displayVal = "";
+          if (forecast) {
+            const isSalinity = forecast.target_variable.includes("Salinity");
             const adjustedVal = horizon === "14d" ? forecast.value * 1.15 : forecast.value;
-            if (adjustedVal >= 4.0) risk = "CRITICAL";
-            else if (adjustedVal >= 2.5) risk = "WARNING";
+            
+            if (isSalinity) {
+              if (adjustedVal >= 4.0) risk = "CRITICAL";
+              else if (adjustedVal >= 2.5) risk = "WARNING";
+              displayVal = `${adjustedVal.toFixed(1)} ${forecast.unit}`;
+            } else {
+              displayVal = `${adjustedVal.toFixed(1)} ${forecast.unit}`;
+            }
+          } else if (isSwot) {
+            displayVal = "SWOT Pass";
+          } else {
+            displayVal = "Gauge";
           }
 
-          const markerIcon = isSwot
-            ? createSwotIcon(risk, isSelected)
-            : createGaugeIcon(risk, isSelected);
+          const markerIcon = createBeaconIcon(
+            isSwot ? "swot" : "gauge",
+            risk,
+            isSelected,
+            displayVal
+          );
 
           return (
             <Marker
@@ -434,25 +474,25 @@ export default function MapWrapper({
               }}
             >
               <Popup className="custom-leaflet-popup">
-                <div className="flex flex-col space-y-2 p-0.5 min-w-[210px] text-foreground">
+                <div className="flex flex-col space-y-2 p-0.5 min-w-[220px] text-foreground">
                   <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
-                    <span className="font-bold text-[10px] tracking-wider uppercase text-muted-foreground">
+                    <span className="font-bold text-[10px] tracking-wider uppercase text-muted-foreground font-mono">
                       {isSwot ? "NASA SWOT Reach" : "BWDB Station"}
                     </span>
                     <span
-                      className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                      className={`text-[9px] font-bold px-1.5 py-0.5 rounded font-mono ${
                         risk === "CRITICAL"
-                          ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                          ? "bg-rose-500/25 text-rose-300 border border-rose-500/40"
                           : risk === "WARNING"
-                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                          : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                          ? "bg-amber-500/25 text-amber-300 border border-amber-500/40"
+                          : "bg-emerald-500/25 text-emerald-300 border border-emerald-500/40"
                       }`}
                     >
                       {risk}
                     </span>
                   </div>
 
-                  <span className="font-bold text-sm text-foreground leading-tight">
+                  <span className="font-bold text-sm text-white leading-tight">
                     {site.name}
                   </span>
                   
@@ -462,11 +502,11 @@ export default function MapWrapper({
 
                   {forecast && (
                     <div className="bg-white/5 p-2 rounded-xl border border-white/5 flex flex-col space-y-1 text-xs">
-                      <div className="flex justify-between text-muted-foreground text-[10px]">
+                      <div className="flex justify-between text-muted-foreground text-[10px] font-mono">
                         <span>PINN Projection</span>
-                        <span className="font-mono">{forecast.target_variable}</span>
+                        <span>{forecast.target_variable}</span>
                       </div>
-                      <span className="font-bold text-foreground text-sm font-mono">
+                      <span className="font-bold text-white text-sm font-mono">
                         {forecast.value.toFixed(1)} {forecast.unit}
                       </span>
                     </div>
@@ -477,11 +517,11 @@ export default function MapWrapper({
                       onClick={() => onSelectSite && onSelectSite(site)}
                       className="text-xs font-semibold text-primary hover:underline cursor-pointer"
                     >
-                      Inspect Telemetry &rarr;
+                      Inspect Details &rarr;
                     </button>
                     <a
                       href={`/app/reaches/${site.id}`}
-                      className="text-[10px] text-muted-foreground hover:text-foreground"
+                      className="text-[10px] text-muted-foreground hover:text-white"
                     >
                       Full Audit
                     </a>
