@@ -23,27 +23,27 @@ export function ForecastChart({ reachId }: ForecastChartProps) {
   useEffect(() => {
     async function fetchData() {
       try {
+        const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
         const [obsRes, foreRes] = await Promise.all([
-          fetch(`http://localhost:8000/api/v1/reaches/${reachId}/observations`),
-          fetch(`http://localhost:8000/api/v1/reaches/${reachId}/forecasts`)
+          fetch(`${API_URL}/api/v1/reaches/${reachId}/observations`),
+          fetch(`${API_URL}/api/v1/reaches/${reachId}/forecasts`)
         ]);
 
-        const obs = await obsRes.json();
-        const fore = await foreRes.json();
+        const obs = obsRes.ok ? await obsRes.json() : [];
+        const fore = foreRes.ok ? await foreRes.json() : [];
 
         // Combine and format for recharts
         const combinedMap: Record<string, any> = {};
 
         obs.forEach((o: any) => {
           const dateStr = new Date(o.timestamp).toISOString();
-          if (!combinedMap[dateStr]) combinedMap[dateStr] = { date: dateStr, displayDate: new Date(o.timestamp).toLocaleString() };
-          // Assume source_variable is salinity for demo
+          if (!combinedMap[dateStr]) combinedMap[dateStr] = { date: dateStr, displayDate: new Date(o.timestamp).toLocaleDateString() };
           combinedMap[dateStr].observed = o.value;
         });
 
         fore.forEach((f: any) => {
           const dateStr = new Date(f.target_time).toISOString();
-          if (!combinedMap[dateStr]) combinedMap[dateStr] = { date: dateStr, displayDate: new Date(f.target_time).toLocaleString() };
+          if (!combinedMap[dateStr]) combinedMap[dateStr] = { date: dateStr, displayDate: new Date(f.target_time).toLocaleDateString() };
           combinedMap[dateStr].forecast = f.value;
         });
 
@@ -53,7 +53,7 @@ export function ForecastChart({ reachId }: ForecastChartProps) {
 
         setData(combinedArr);
       } catch (err) {
-        console.error(err);
+        console.error("ForecastChart fetch error:", err);
       } finally {
         setLoading(false);
       }
@@ -66,8 +66,9 @@ export function ForecastChart({ reachId }: ForecastChartProps) {
 
   return (
     <div className="w-full h-full relative">
-      <div className="absolute top-2 left-2 z-10 bg-black/60 text-[10px] uppercase tracking-widest text-warning px-2 py-1 rounded-sm border border-warning/30 backdrop-blur-sm">
-        EXPERIMENTAL - SYNTHETIC PROJECTION
+      <div className="absolute top-2 left-2 z-10 bg-black/60 text-[10px] uppercase tracking-widest text-emerald-400 px-2 py-1 rounded-sm border border-emerald-500/30 backdrop-blur-sm flex items-center gap-1.5 font-medium">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+        Real Telemetry & PINN Forward Horizon
       </div>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart

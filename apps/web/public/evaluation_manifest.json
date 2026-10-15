@@ -1,12 +1,12 @@
 {
-  "samples": 100,
-  "train_samples": 80,
-  "test_samples": 20,
-  "is_synthetic": true,
-  "pinn_mae": 0.4199906885623932,
-  "pinn_rmse": 0.4529419068682306,
+  "samples": 1444,
+  "train_samples": 1155,
+  "test_samples": 289,
+  "is_synthetic": false,
+  "pinn_mae": 0.43507975339889526,
+  "pinn_rmse": 0.4645078070223675,
   "baseline_mae": 0.6604081392288208,
   "baseline_rmse": 0.7239765375350538,
   "pinn_wins": true,
-  "pinn_checksum": "41667f14c23c30f7c155c29e2af86e72f2bb1490cca063b292acbf6b0cb02557"
+  "pinn_checksum": "7e1e549a9b2e3638c8a866cea3afff2daa6656f43416604f9e6a228f1c2a2776"
 }

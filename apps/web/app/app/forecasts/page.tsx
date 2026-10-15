@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -18,35 +21,40 @@ interface Site {
   description: string;
 }
 
-async function getForecastsAndSites() {
-  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-  try {
-    const [sitesRes, forecastsRes] = await Promise.all([
-      fetch(`${API_URL}/api/v1/reaches`, { cache: 'no-store' }),
-      fetch(`${API_URL}/api/v1/reaches/SWOT_REACH_DEMO_001/forecasts`, { cache: 'no-store' }) // Hacky for demo, but conceptually we fetch forecasts for all or specific reaches. In a real app we'd have a /forecasts endpoint.
-    ]);
-    const sites: Site[] = await sitesRes.json();
-    
-    // For demo purposes, we will fetch forecasts for the known reaches manually
-    const allForecasts: Forecast[] = [];
-    for (const site of sites) {
-      if (site.id.includes("REACH_DEMO")) {
-         const fRes = await fetch(`${API_URL}/api/v1/reaches/${site.id}/forecasts`, { cache: 'no-store' });
-         if (fRes.ok) {
-           const f = await fRes.json();
-           allForecasts.push(...f);
-         }
-      }
-    }
-    return { sites, allForecasts };
-  } catch (error) {
-    console.error("Failed to fetch data", error);
-    return { sites: [], allForecasts: [] };
-  }
-}
+export default function ForecastsPage() {
+  const [sites, setSites] = useState<Site[]>([]);
+  const [allForecasts, setAllForecasts] = useState<Forecast[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default async function ForecastsPage() {
-  const { sites, allForecasts } = await getForecastsAndSites();
+  useEffect(() => {
+    const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+    
+    Promise.all([
+      fetch(`${API_URL}/api/v1/reaches`).then(res => res.ok ? res.json() : []).catch(() => []),
+      fetch(`${API_URL}/api/v1/reaches/forecasts/all`).then(res => res.ok ? res.json() : []).catch(() => [])
+    ]).then(async ([loadedSites, loadedForecasts]) => {
+      setSites(loadedSites);
+      
+      let forecasts = loadedForecasts;
+      if (forecasts.length === 0 && loadedSites.length > 0) {
+        const manualForecasts: Forecast[] = [];
+        for (const site of loadedSites) {
+          try {
+            const fRes = await fetch(`${API_URL}/api/v1/reaches/${site.id}/forecasts`);
+            if (fRes.ok) {
+              const f = await fRes.json();
+              manualForecasts.push(...f);
+            }
+          } catch {
+            // continue
+          }
+        }
+        forecasts = manualForecasts;
+      }
+      setAllForecasts(forecasts);
+      setLoading(false);
+    });
+  }, []);
 
   return (
     <div className="flex flex-col space-y-6">

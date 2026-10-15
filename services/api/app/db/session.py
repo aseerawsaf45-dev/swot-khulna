@@ -1,15 +1,33 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import os
+from pathlib import Path
+
+# Load .env if present
+try:
+    from dotenv import load_dotenv
+    env_path = Path(__file__).resolve().parents[4] / ".env"
+    load_dotenv(dotenv_path=env_path)
+except Exception:
+    pass
 
 DATABASE_URL = os.environ.get(
     "DATABASE_URL", 
-    "postgresql+psycopg://swot_app:change-me-local-only@localhost:5432/khulna_salt_intrusion"
+    "sqlite:///khulna.db"
 )
 
-# In a real environment, we'd use async sqlalchemy (ext.asyncio), 
-# but synchronous is fine for this prototype slice unless performance dictates otherwise.
-engine = create_engine(DATABASE_URL, echo=False)
+# Resolve relative sqlite URL to root project directory
+if DATABASE_URL.startswith("sqlite:///") and not (DATABASE_URL.startswith("sqlite:////") or ":" in DATABASE_URL[10:13]):
+    rel_path = DATABASE_URL.replace("sqlite:///", "")
+    if not os.path.isabs(rel_path):
+        root_dir = Path(__file__).resolve().parents[4]
+        db_file = (root_dir / rel_path).resolve()
+        DATABASE_URL = f"sqlite:///{db_file}"
+
+# SQLite multi-threading support for FastAPI
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+
+engine = create_engine(DATABASE_URL, echo=False, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():

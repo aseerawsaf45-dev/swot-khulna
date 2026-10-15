@@ -86,6 +86,9 @@ async def upload_csv(file: UploadFile = File(...), db: Session = Depends(get_db)
             "job_id": str(uuid.uuid4()),
             "message": f"Inserted {inserted_count} rows, skipped {skipped_count} existing rows."
         }
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         logger.error(f"Error processing CSV: {e}")
         db.rollback()

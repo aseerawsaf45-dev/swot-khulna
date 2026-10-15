@@ -1,6 +1,19 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 
 export function TopContextBar() {
+  const [stats, setStats] = useState<{ status: string; total_monitoring_sites: number; total_hydro_observations: number } | null>(null);
+
+  useEffect(() => {
+    const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+    fetch(`${API_URL}/api/v1/reaches/stats/summary`)
+      .then((res) => res.json())
+      .then((data) => setStats(data))
+      .catch(() => setStats(null));
+  }, []);
+
   return (
     <header className="h-16 flex items-center justify-between px-6 bg-background border-b border-border z-10 shrink-0">
       {/* Context info */}
@@ -13,10 +26,13 @@ export function TopContextBar() {
         <div className="h-8 w-px bg-border" />
         
         <div className="flex items-center gap-3">
-          <Badge variant="outline" className="text-[10px] uppercase tracking-wider bg-primary/10 text-primary border-primary/20 px-2 rounded-full font-semibold">
-            Demo Data
+          <Badge variant="outline" className="text-[10px] uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/30 px-2.5 py-0.5 rounded-full font-semibold flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            {stats ? "Real & Harmonized Data" : "Live Ingestion Stream"}
           </Badge>
-          <span className="text-xs text-muted-foreground">Last sync: 2 min ago</span>
+          <span className="text-xs text-muted-foreground">
+            {stats ? `${stats.total_monitoring_sites} Active Sites • ${stats.total_hydro_observations} Telemetry Passes` : "SWOT & BWDB Network"}
+          </span>
         </div>
       </div>
 

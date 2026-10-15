@@ -51,21 +51,25 @@ export default function MapWrapper() {
         style={{ height: "100%", width: "100%", background: "#0a0a0a" }}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
         {sites.map(site => {
           // Differentiate styling based on site type
-          const isSwotNode = site.id.startsWith("swot");
+          const isSwotNode = site.id.startsWith("3124") || site.id.toLowerCase().includes("swot");
           
           if (isSwotNode) {
             return (
-              <CircleMarker key={site.id} center={[site.latitude, site.longitude]} radius={8} pathOptions={{ color: '#eab308', fillColor: '#eab308', fillOpacity: 0.6, weight: 2 }}>
+              <CircleMarker key={site.id} center={[site.latitude, site.longitude]} radius={9} pathOptions={{ color: '#f59e0b', fillColor: '#fbbf24', fillOpacity: 0.8, weight: 2 }}>
                 <Popup className="text-black">
-                  <div className="flex flex-col space-y-1">
-                    <span className="font-bold text-xs uppercase text-slate-800 tracking-wider">{site.name}</span>
-                    <span className="text-[10px] text-slate-500 mt-1">{site.description}</span>
+                  <div className="flex flex-col space-y-1.5 p-1">
+                    <span className="font-bold text-xs uppercase text-amber-900 tracking-wider">NASA SWOT Reach</span>
+                    <span className="font-semibold text-sm text-slate-900">{site.name}</span>
+                    <span className="text-[11px] text-slate-600 leading-tight">{site.description}</span>
+                    <a href={`/app/reaches/${site.id}`} className="text-xs text-blue-600 font-medium hover:underline pt-1">
+                      View Timeseries & Forecasts &rarr;
+                    </a>
                   </div>
                 </Popup>
               </CircleMarker>
@@ -75,9 +79,13 @@ export default function MapWrapper() {
           return (
             <Marker key={site.id} position={[site.latitude, site.longitude]} icon={icon}>
               <Popup className="text-black">
-                <div className="flex flex-col space-y-1">
-                  <span className="font-bold text-xs uppercase text-slate-800 tracking-wider">{site.name}</span>
-                  <span className="text-[10px] text-slate-500 mt-1">{site.description}</span>
+                <div className="flex flex-col space-y-1.5 p-1">
+                  <span className="font-bold text-xs uppercase text-sky-800 tracking-wider">BWDB Station Gauge</span>
+                  <span className="font-semibold text-sm text-slate-900">{site.name}</span>
+                  <span className="text-[11px] text-slate-600 leading-tight">{site.description}</span>
+                  <a href={`/app/reaches/${site.id}`} className="text-xs text-blue-600 font-medium hover:underline pt-1">
+                    View Timeseries & Observations &rarr;
+                  </a>
                 </div>
               </Popup>
             </Marker>

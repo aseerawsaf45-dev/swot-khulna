@@ -16,7 +16,7 @@ def test_csv_upload_idempotency():
     # UUIDs, we can just use a unique site_id for the test.
     
     test_site_id = f"test-site-{uuid.uuid4()}"
-    test_timestamp = datetime.datetime.now().isoformat()
+    test_timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
     
     # 1. Create a dummy site (Since we don't have a POST /sites yet, we can do it directly in DB or bypass FK constraint if sqlite)
     # Actually, SQLite does not enforce foreign keys by default unless PRAGMA foreign_keys = ON is run.
@@ -24,7 +24,7 @@ def test_csv_upload_idempotency():
     
     csv_content = f"site_id,timestamp,target_variable,value,unit,medium,source,measurement_method,quality_flag\n" \
                   f"{test_site_id},{test_timestamp},salinity,12.5,ppt,water,test_source,sensor,1\n" \
-                  f"{test_site_id},{test_timestamp},EC,1800,us/cm,water,test_source,sensor,1\n"
+                  f"{test_site_id},{test_timestamp},EC,1.8,dS/m,water,test_source,sensor,1\n"
     
     # First upload
     response1 = client.post(

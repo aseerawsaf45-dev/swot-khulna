@@ -1,2 +1,11 @@
 station_id,reach_id,observed_at,latitude,longitude,ec_value,ec_unit,water_temp_c,quality_flag,source_id
-KH-001,P-14,2026-09-01T08:00:00+06:00,22.70,89.50,4.2,dS/m,29.1,valid,field_campaign_01
+khulna-p14,31241400581,2025-01-01T06:00:00+06:00,22.808,89.58,2.58,dS/m,21.9,valid,BWDB_IWM_Harmonized_2025
+khulna-p14,31241400581,2025-01-01T18:00:00+06:00,22.808,89.58,2.68,dS/m,22.4,valid,BWDB_IWM_Harmonized_2025
+khulna-p14,31241400581,2025-01-02T06:00:00+06:00,22.808,89.58,2.39,dS/m,21.3,valid,BWDB_IWM_Harmonized_2025
+khulna-p14,31241400581,2025-01-02T18:00:00+06:00,22.808,89.58,2.53,dS/m,21.9,valid,BWDB_IWM_Harmonized_2025
+khulna-p14,31241400581,2025-01-03T06:00:00+06:00,22.808,89.58,2.22,dS/m,22.1,valid,BWDB_IWM_Harmonized_2025
+khulna-p14,31241400581,2025-01-03T18:00:00+06:00,22.808,89.58,2.34,dS/m,22.6,valid,BWDB_IWM_Harmonized_2025
+khulna-p14,31241400581,2025-01-04T06:00:00+06:00,22.808,89.58,2.2,dS/m,22.1,valid,BWDB_IWM_Harmonized_2025
+khulna-p14,31241400581,2025-01-04T18:00:00+06:00,22.808,89.58,2.1,dS/m,21.5,valid,BWDB_IWM_Harmonized_2025
+khulna-p14,31241400581,2025-01-05T06:00:00+06:00,22.808,89.58,2.12,dS/m,22.7,valid,BWDB_IWM_Harmonized_2025
+khulna-p14,31241400581,2025-01-05T18:00:00+06:00,22.808,89.58,2.1,dS/m,21.9,valid,BWDB_IWM_Harmonized_2025

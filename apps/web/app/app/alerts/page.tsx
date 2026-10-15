@@ -1,12 +1,40 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
+interface AlertItem {
+  id: string;
+  severity: "CRITICAL" | "WARNING" | "INFO";
+  entity: string;
+  entity_name: string;
+  timestamp: string;
+  message: string;
+  status: string;
+}
+
 export default function AlertsPage() {
+  const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+    fetch(`${API_URL}/api/v1/reaches/alerts/all`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setAlerts(data))
+      .catch((err) => {
+        console.error("Failed to fetch alerts", err);
+        setAlerts([]);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="flex flex-col space-y-6">
       <div className="flex flex-col space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">Active Alerts</h1>
-        <p className="text-sm text-muted-foreground">System-generated warnings for threshold breaches and data source failures.</p>
+        <p className="text-sm text-muted-foreground">System-generated warnings for threshold breaches and data source failures across Khulna reaches.</p>
       </div>
 
       <Card className="bg-card border-white/5 overflow-hidden">
@@ -22,31 +50,65 @@ export default function AlertsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              
-              <tr className="hover:bg-destructive/5 transition-colors bg-destructive/5 border-l-2 border-l-destructive">
-                <td className="px-5 py-4"><Badge variant="outline" className="bg-destructive/10 text-destructive border-none">CRITICAL</Badge></td>
-                <td className="px-5 py-4 text-muted-foreground">2 hrs ago</td>
-                <td className="px-5 py-4 font-mono text-xs">SWOT_REACH_DEMO_001</td>
-                <td className="px-5 py-4 font-medium">Salinity forecasted to cross 4.0 dS/m agriculture threshold in 48 hours.</td>
-                <td className="px-5 py-4"><span className="text-xs font-semibold text-destructive">UNRESOLVED</span></td>
-              </tr>
-              
-              <tr className="hover:bg-warning/5 transition-colors">
-                <td className="px-5 py-4"><Badge variant="outline" className="bg-warning/10 text-warning border-none">WARNING</Badge></td>
-                <td className="px-5 py-4 text-muted-foreground">14 days ago</td>
-                <td className="px-5 py-4 font-mono text-xs">SYSTEM</td>
-                <td className="px-5 py-4 text-muted-foreground">NASA SWOT KaRIn pass has not provided new observations.</td>
-                <td className="px-5 py-4"><span className="text-xs font-semibold text-warning">ACTIVE</span></td>
-              </tr>
+              {alerts.map((alert) => {
+                const isCrit = alert.severity === "CRITICAL";
+                const isWarn = alert.severity === "WARNING";
 
-              <tr className="hover:bg-white/5 transition-colors opacity-50">
-                <td className="px-5 py-4"><Badge variant="outline" className="bg-muted text-muted-foreground border-none">INFO</Badge></td>
-                <td className="px-5 py-4 text-muted-foreground">16 days ago</td>
-                <td className="px-5 py-4 font-mono text-xs">SWOT_REACH_DEMO_002</td>
-                <td className="px-5 py-4 text-muted-foreground">New model version (PINN v1.2) deployed successfully.</td>
-                <td className="px-5 py-4"><span className="text-xs font-semibold text-muted-foreground">RESOLVED</span></td>
-              </tr>
+                return (
+                  <tr 
+                    key={alert.id}
+                    className={`transition-colors ${
+                      isCrit 
+                        ? "hover:bg-destructive/10 bg-destructive/5 border-l-2 border-l-destructive" 
+                        : isWarn 
+                        ? "hover:bg-warning/10 bg-warning/5 border-l-2 border-l-warning" 
+                        : "hover:bg-white/5 opacity-80"
+                    }`}
+                  >
+                    <td className="px-5 py-4">
+                      <Badge 
+                        variant="outline" 
+                        className={
+                          isCrit 
+                            ? "bg-destructive/20 text-destructive border-destructive/30" 
+                            : isWarn 
+                            ? "bg-warning/20 text-warning border-warning/30" 
+                            : "bg-muted text-muted-foreground border-none"
+                        }
+                      >
+                        {alert.severity}
+                      </Badge>
+                    </td>
+                    <td className="px-5 py-4 text-muted-foreground text-xs font-mono">
+                      {alert.timestamp.includes("T") ? new Date(alert.timestamp).toLocaleDateString() : alert.timestamp}
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-xs text-foreground">{alert.entity_name}</span>
+                        <span className="font-mono text-[10px] text-muted-foreground">{alert.entity}</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 font-medium text-sm text-foreground/90">
+                      {alert.message}
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className={`text-xs font-semibold ${
+                        isCrit ? "text-destructive" : isWarn ? "text-warning" : "text-emerald-400"
+                      }`}>
+                        {alert.status}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
 
+              {alerts.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="text-center py-8 text-muted-foreground text-sm">
+                    No active threshold alerts. Backend may be offline or all reaches are within nominal thresholds.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

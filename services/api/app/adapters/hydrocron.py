@@ -18,9 +18,10 @@ class HydrocronAdapter:
     async def check_health(self) -> bool:
         """Ping the hydrocron service or a small metadata endpoint to check live status."""
         try:
-            check_url = self.base_url.replace('/v1/timeseries', '')
-            response = await self.client.get(check_url, timeout=5.0)
-            return response.status_code < 500
+            # Query timeseries endpoint with a dummy check to verify connectivity
+            response = await self.client.get(self.base_url, params={"feature": "Reach"}, timeout=5.0)
+            # Hydrocron returns 400 when missing parameters, which indicates the service is alive and parsing
+            return response.status_code in [200, 400]
         except Exception as e:
             logger.error(f"Hydrocron health check failed: {e}")
             return False
@@ -42,7 +43,8 @@ class HydrocronAdapter:
         feature_id: str, 
         start_time: datetime, 
         end_time: datetime,
-        fields: str = "wse,width,slope2"
+        fields: str = "reach_id,time_str,wse,width,slope2",
+        collection_name: str = "SWOT_L2_HR_RiverSP_2.0"
     ) -> List[Dict[str, Any]]:
         """Fetch SWOT reach observations from Hydrocron."""
         params = {
@@ -50,7 +52,8 @@ class HydrocronAdapter:
             "feature_id": feature_id,
             "start_time": start_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "end_time": end_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "output": "json",
+            "output": "csv",
+            "collection_name": collection_name,
             "fields": fields
         }
         
@@ -58,28 +61,16 @@ class HydrocronAdapter:
         url = self.base_url
         
         try:
-            # Handle potential pagination via 'next' links or looping
-            while url:
-                data = await self._fetch_page(url, params)
-                page_results = data.get("results", [])
-                
-                # Hydrocron returns dict of lists inside 'results'. e.g. results: [{"wse": [..]}]
-                # Or sometimes results is a flat list. We will just append the raw results and process later.
-                if isinstance(page_results, list):
-                    results.extend(page_results)
-                else:
-                    results.append(page_results)
-                
-                # Check for next page URL in the JSON response or header if Hydrocron implements it
-                # For now, Hydrocron v1 returns all within the requested range, so we break immediately
-                # but allow the structure for future Next tokens.
-                next_url = data.get("next")
-                if next_url:
-                    url = next_url
-                    params = {} # params are usually encoded in the next_url
-                else:
-                    break
-                    
+            data = await self._fetch_page(url, params)
+            csv_str = data.get("results", {}).get("csv", "")
+            if csv_str:
+                import io
+                import pandas as pd
+                df = pd.read_csv(io.StringIO(csv_str))
+                # Filter out missing/fill values
+                if "wse" in df.columns:
+                    df = df[df["wse"] > -100]
+                results = df.to_dict(orient="records")
             return results
         except Exception as e:
             logger.error(f"Failed to fetch from Hydrocron for reach {feature_id}: {e}")
