@@ -14,9 +14,10 @@ import {
 
 type ForecastChartProps = {
   reachId: string;
+  showBadge?: boolean;
 };
 
-export function ForecastChart({ reachId }: ForecastChartProps) {
+export function ForecastChart({ reachId, showBadge = true }: ForecastChartProps) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -66,10 +67,12 @@ export function ForecastChart({ reachId }: ForecastChartProps) {
 
   return (
     <div className="w-full h-full relative">
-      <div className="absolute top-2 left-2 z-10 bg-black/60 text-[10px] uppercase tracking-widest text-emerald-400 px-2 py-1 rounded-sm border border-emerald-500/30 backdrop-blur-sm flex items-center gap-1.5 font-medium">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-        Real Telemetry & PINN Forward Horizon
-      </div>
+      {showBadge && (
+        <div className="absolute top-2 left-2 z-10 bg-black/60 text-[10px] uppercase tracking-widest text-emerald-400 px-2 py-1 rounded-sm border border-emerald-500/30 backdrop-blur-sm flex items-center gap-1.5 font-medium">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          Real Telemetry & PINN Forward Horizon
+        </div>
+      )}
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={data}

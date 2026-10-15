@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Menu, Bell, Search, Waves } from "lucide-react";
 
-export function TopContextBar() {
+export function TopContextBar({ onToggleMobileNav }: { onToggleMobileNav?: () => void }) {
   const [stats, setStats] = useState<{ status: string; total_monitoring_sites: number; total_hydro_observations: number } | null>(null);
 
   useEffect(() => {
@@ -15,51 +16,76 @@ export function TopContextBar() {
   }, []);
 
   return (
-    <header className="h-16 flex items-center justify-between px-6 bg-background border-b border-border z-10 shrink-0">
-      {/* Context info */}
-      <div className="flex items-center gap-6">
+    <header className="h-14 md:h-16 flex items-center justify-between px-3 sm:px-6 bg-[#08131f]/90 backdrop-blur-md border-b border-white/10 z-20 shrink-0">
+      {/* Mobile Hamburger + Title */}
+      <div className="flex md:hidden items-center gap-2.5">
+        <button
+          onClick={onToggleMobileNav}
+          aria-label="Open Navigation"
+          className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-foreground hover:bg-white/10 transition-colors"
+        >
+          <Menu className="w-5 h-5 text-foreground" />
+        </button>
+
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center">
+            <Waves className="w-3.5 h-3.5 text-primary" />
+          </div>
+          <span className="font-bold text-xs uppercase tracking-tight text-foreground">SWOT Khulna</span>
+        </div>
+      </div>
+
+      {/* Desktop Context Info */}
+      <div className="hidden md:flex items-center gap-5">
         <div className="flex flex-col">
-          <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Active Region</span>
-          <span className="text-sm font-medium text-foreground">Southwest Bangladesh (Khulna)</span>
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Active Region</span>
+          <span className="text-xs font-semibold text-foreground">Southwest Bangladesh (Khulna Delta)</span>
         </div>
         
-        <div className="h-8 w-px bg-border" />
+        <div className="h-6 w-px bg-white/10" />
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <Badge variant="outline" className="text-[10px] uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/30 px-2.5 py-0.5 rounded-full font-semibold flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            {stats ? "Real & Harmonized Data" : "Live Ingestion Stream"}
+            {stats ? "Harmonized Data" : "Live Stream"}
           </Badge>
-          <span className="text-xs text-muted-foreground">
-            {stats ? `${stats.total_monitoring_sites} Active Sites • ${stats.total_hydro_observations} Telemetry Passes` : "SWOT & BWDB Network"}
+          <span className="text-[11px] text-muted-foreground font-mono">
+            {stats ? `${stats.total_monitoring_sites} Sites • ${stats.total_hydro_observations} Passes` : "SWOT & BWDB Network"}
           </span>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-4">
-        <div className="relative group">
-          {/* Search Placeholder */}
-          <div className="w-64 h-9 rounded-full bg-card border border-border flex items-center px-4 transition-colors group-hover:border-primary/50">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted-foreground">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <span className="text-xs text-muted-foreground ml-3">Search reaches...</span>
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Desktop Search */}
+        <div className="relative group hidden lg:block">
+          <div className="w-56 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center px-3 transition-colors group-hover:border-primary/50">
+            <Search className="w-3.5 h-3.5 text-muted-foreground" />
+            <span className="text-[11px] text-muted-foreground ml-2.5">Search reaches or gauges...</span>
           </div>
         </div>
 
-        <button className="w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center hover:bg-white/5 transition-colors">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-foreground">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-          </svg>
+        {/* Mobile Status Dot Indicator */}
+        <div className="flex md:hidden items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-mono">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Live</span>
+        </div>
+
+        {/* Bell Notification */}
+        <button 
+          aria-label="Alerts"
+          className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors relative"
+        >
+          <Bell className="w-4 h-4 text-muted-foreground" />
+          <span className="w-2 h-2 rounded-full bg-destructive absolute top-1.5 right-1.5" />
         </button>
 
-        <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
-          <span className="text-xs font-semibold text-primary">SC</span>
+        {/* User Avatar */}
+        <div className="w-8 h-8 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
+          <span className="text-xs font-bold text-primary">SC</span>
         </div>
       </div>
     </header>
   );
 }
+
