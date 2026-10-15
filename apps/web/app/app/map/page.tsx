@@ -38,12 +38,12 @@ const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
   ),
 });
 
-// Quick Regional Hotspot Jump Coordinates
+// Focused Khulna Regional Hotspot Jump Coordinates
 const HOTSPOTS = [
-  { name: "Khulna Core", coords: [22.808, 89.580] as [number, number], desc: "Urban Water Intake & SW241", risk: "4.5 dS/m" },
+  { name: "Khulna City", coords: [22.808, 89.580] as [number, number], desc: "Urban Water Intake & SW241", risk: "4.5 dS/m" },
+  { name: "Batiaghata", coords: [22.650, 89.550] as [number, number], desc: "Agricultural Polders (Boro Rice Zone)", risk: "3.9 dS/m" },
   { name: "Mongla Port", coords: [22.464, 89.600] as [number, number], desc: "High Salinity Front & SW244", risk: "7.9 dS/m" },
-  { name: "Shibsa Estuary", coords: [22.550, 89.520] as [number, number], desc: "Western Mangrove Tidal Belt", risk: "4.2 dS/m" },
-  { name: "Gorai Inflow", coords: [23.540, 89.516] as [number, number], desc: "Freshwater Boundary Reach", risk: "Fresh" },
+  { name: "Paikgachha", coords: [22.580, 89.420] as [number, number], desc: "Western Mangrove Shibsa Belt", risk: "4.2 dS/m" },
 ];
 
 export default function MapExplorerPage() {
@@ -56,7 +56,7 @@ export default function MapExplorerPage() {
   const [horizon, setHorizon] = useState<"now" | "7d" | "14d">("now");
   const [riskFilter, setRiskFilter] = useState<"all" | "critical" | "warning" | "nominal">("all");
   const [currentMode, setCurrentMode] = useState<"all" | "salinity" | "gauges" | "swot">("all");
-  const [selectedBasin, setSelectedBasin] = useState<"all" | "Passur" | "Shibsa" | "Gorai" | "Rupsha">("all");
+  const [selectedBasin, setSelectedBasin] = useState<"all" | "Passur" | "Shibsa" | "Rupsha">("all");
 
   // Workbench & Drawer states
   const [activePanel, setActivePanel] = useState<"directory" | "layers" | "guide" | null>(null);
@@ -68,7 +68,7 @@ export default function MapExplorerPage() {
   const [showLegend, setShowLegend] = useState(false);
   const [showMissionBrief, setShowMissionBrief] = useState(true);
 
-  // Data
+  // Data strictly filtered to Khulna Region (22.30°N to 22.95°N, 89.25°E to 89.75°E)
   const [allSites, setAllSites] = useState<Site[]>([]);
   const [allForecasts, setAllForecasts] = useState<Forecast[]>([]);
 
@@ -78,7 +78,11 @@ export default function MapExplorerPage() {
       fetch(`${API_URL}/api/v1/reaches`).then(r => r.ok ? r.json() : []).catch(() => []),
       fetch(`${API_URL}/api/v1/reaches/forecasts/all`).then(r => r.ok ? r.json() : []).catch(() => [])
     ]).then(([sites, forecasts]) => {
-      setAllSites(sites);
+      // Retain only sites located within Khulna delta geographic envelope
+      const khulnaSites = (sites as Site[]).filter(
+        s => s.latitude >= 22.30 && s.latitude <= 22.95 && s.longitude >= 89.25 && s.longitude <= 89.75
+      );
+      setAllSites(khulnaSites);
       setAllForecasts(forecasts);
     });
   }, []);
@@ -193,12 +197,12 @@ export default function MapExplorerPage() {
     if (corridor === "Passur") {
       setSelectedBasin("Passur");
       setFlyToCoords([22.464, 89.600]);
+    } else if (corridor === "Rupsha") {
+      setSelectedBasin("Rupsha");
+      setFlyToCoords([22.808, 89.580]);
     } else if (corridor === "Shibsa") {
       setSelectedBasin("Shibsa");
-      setFlyToCoords([22.550, 89.520]);
-    } else if (corridor === "Gorai") {
-      setSelectedBasin("Gorai");
-      setFlyToCoords([23.540, 89.516]);
+      setFlyToCoords([22.550, 89.450]);
     }
   };
 
@@ -504,7 +508,15 @@ export default function MapExplorerPage() {
                         selectedBasin === "all" ? "bg-white/20 text-white font-bold" : "bg-white/5 text-muted-foreground hover:text-white"
                       }`}
                     >
-                      All Rivers
+                      All Khulna
+                    </button>
+                    <button
+                      onClick={() => setSelectedBasin("Rupsha")}
+                      className={`px-2 py-1 rounded-lg shrink-0 font-medium transition-all ${
+                        selectedBasin === "Rupsha" ? "bg-primary text-black font-bold shadow" : "bg-white/5 text-muted-foreground hover:text-white"
+                      }`}
+                    >
+                      Rupsha River
                     </button>
                     <button
                       onClick={() => setSelectedBasin("Passur")}
@@ -517,18 +529,10 @@ export default function MapExplorerPage() {
                     <button
                       onClick={() => setSelectedBasin("Shibsa")}
                       className={`px-2 py-1 rounded-lg shrink-0 font-medium transition-all ${
-                        selectedBasin === "Shibsa" ? "bg-amber-500/25 text-amber-300 font-bold border border-amber-500/40" : "bg-white/5 text-muted-foreground hover:text-white"
+                        selectedBasin === "Shibsa" ? "bg-sky-500/25 text-sky-300 font-bold border border-sky-500/40" : "bg-white/5 text-muted-foreground hover:text-white"
                       }`}
                     >
                       Shibsa Estuary
-                    </button>
-                    <button
-                      onClick={() => setSelectedBasin("Gorai")}
-                      className={`px-2 py-1 rounded-lg shrink-0 font-medium transition-all ${
-                        selectedBasin === "Gorai" ? "bg-sky-500/25 text-sky-300 font-bold border border-sky-500/40" : "bg-white/5 text-muted-foreground hover:text-white"
-                      }`}
-                    >
-                      Gorai Inflow
                     </button>
                   </div>
 

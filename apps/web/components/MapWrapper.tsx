@@ -47,7 +47,7 @@ export interface MapWrapperProps {
   onSelectCorridor?: (corridorName: string) => void;
 }
 
-// Controller for programmatic smooth map pans/zooms
+// Controller for programmatic smooth map pans/zooms constrained to Khulna
 function MapController({ coords, zoom }: { coords: [number, number] | null; zoom: number }) {
   const map = useMap();
   useEffect(() => {
@@ -122,28 +122,23 @@ const BASEMAP_TILES = {
   }
 };
 
-// Southwest Bangladesh River Corridors
-const PASSUR_SALINITY_CORRIDOR: [number, number][] = [
-  [21.75, 89.60],
-  [21.95, 89.62],
-  [22.20, 89.61],
-  [22.464, 89.60], // Mongla Port
-  [22.65, 89.58],
-  [22.808, 89.58], // Khulna Rupsha
-  [23.00, 89.55]
+// KHULNA REGION ONLY: Rupsha - Passur River Tidal Channel
+// Strictly within Khulna District (Khulna Sadar -> Batiaghata -> Dacope -> Mongla Port -> Sundarbans Gate)
+const KHULNA_PASSUR_CORRIDOR: [number, number][] = [
+  [22.825, 89.575], // Khulna City / Upper Rupsha
+  [22.808, 89.580], // Rupsha Bridge / SW241
+  [22.730, 89.570], // Batiaghata Tidal Reach
+  [22.620, 89.578], // Chalna / Dacope Estuary
+  [22.520, 89.590], // Rampal Transition Zone
+  [22.464, 89.600], // Mongla Port (SW244)
+  [22.380, 89.605], // Northern Sundarbans Gate
 ];
 
-const SHIBSA_CORRIDOR: [number, number][] = [
-  [21.78, 89.35],
-  [22.10, 89.38],
-  [22.45, 89.32],
-  [22.55, 89.52]
-];
-
-const GORAI_FRESHWATER_CORRIDOR: [number, number][] = [
-  [23.54, 89.516],
-  [23.25, 89.53],
-  [23.00, 89.55]
+// Western Khulna: Shibsa River Channel (Paikgachha to Dacope Mangrove Belt)
+const KHULNA_SHIBSA_CORRIDOR: [number, number][] = [
+  [22.620, 89.440], // Paikgachha Reach
+  [22.520, 89.460], // Shibsa Estuary
+  [22.420, 89.450], // Dacope Mangrove Channel
 ];
 
 export default function MapWrapper({
@@ -188,9 +183,13 @@ export default function MapWrapper({
     return map;
   }, [forecasts]);
 
-  // Filter sites based on search, layer toggles, and risk
-  const filteredSites = useMemo(() => {
+  // Filter sites strictly to the Khulna Region (22.30°N to 22.95°N, 89.25°E to 89.75°E)
+  const khulnaSites = useMemo(() => {
     return sites.filter((site) => {
+      // Must be within Khulna Delta boundaries
+      const inKhulna = site.latitude >= 22.30 && site.latitude <= 22.95 && site.longitude >= 89.25 && site.longitude <= 89.75;
+      if (!inKhulna) return false;
+
       const isSwot = site.id.startsWith("3124") || site.id.toLowerCase().includes("swot");
       
       // Layer type filter
@@ -223,12 +222,39 @@ export default function MapWrapper({
     });
   }, [sites, showSwot, showGauges, searchQuery, riskFilter, forecastMap]);
 
+  // Smart micro-offset for co-located stations (e.g. SWOT Reach + BWDB Gauge at Mongla/Khulna)
+  // Ensures zero overlapping badges so every station is clearly legible and clickable
+  const placedSites = useMemo(() => {
+    const locCount: Record<string, number> = {};
+    return khulnaSites.map((site) => {
+      const key = `${site.latitude.toFixed(3)}_${site.longitude.toFixed(3)}`;
+      const index = locCount[key] || 0;
+      locCount[key] = index + 1;
+
+      if (index > 0) {
+        // Offset alternate markers diagonally: ~1km spacing
+        const latOffset = (index % 2 === 1 ? -0.012 : 0.012) * Math.ceil(index / 2);
+        const lonOffset = 0.016 * Math.ceil(index / 2);
+        return {
+          ...site,
+          displayLat: site.latitude + latOffset,
+          displayLon: site.longitude + lonOffset,
+        };
+      }
+      return {
+        ...site,
+        displayLat: site.latitude,
+        displayLon: site.longitude,
+      };
+    });
+  }, [khulnaSites]);
+
   if (!mounted) {
     return (
       <div className="w-full h-full bg-[#05070d] flex items-center justify-center text-muted-foreground text-xs">
         <div className="flex flex-col items-center gap-2">
           <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <span className="font-mono">Synchronizing Radar & Bathymetry...</span>
+          <span className="font-mono">Loading Khulna Estuary Radar...</span>
         </div>
       </div>
     );
@@ -291,9 +317,17 @@ export default function MapWrapper({
         }
       `}</style>
 
+      {/* STRICT KHULNA REGION MAP CONTAINER */}
       <MapContainer
-        center={[22.65, 89.52]}
-        zoom={10}
+        center={[22.65, 89.56]}
+        zoom={11}
+        minZoom={10}
+        maxZoom={15}
+        maxBounds={[
+          [22.25, 89.20],
+          [22.95, 89.85],
+        ]}
+        maxBoundsViscosity={1.0}
         scrollWheelZoom={true}
         style={{ height: "100%", width: "100%", background: "#05070d" }}
       >
@@ -316,16 +350,16 @@ export default function MapWrapper({
           />
         )}
 
-        {/* Salinity Intrusion River Corridors with Rich Interactive Tooltips */}
+        {/* Khulna River Corridors with Ingress Tooltips */}
         {showSalinityFront && (
           <>
-            {/* Marine / Estuarine Ingress Corridor (High Salinity >8.0 dS/m) */}
+            {/* Marine / Estuarine Ingress Corridor (Mongla Port -> Sundarbans Gate: >7.0 dS/m) */}
             <Polyline
-              positions={PASSUR_SALINITY_CORRIDOR.slice(0, 4)}
+              positions={KHULNA_PASSUR_CORRIDOR.slice(4)}
               pathOptions={{
                 color: "#f43f5e",
                 weight: 6,
-                opacity: 0.9,
+                opacity: 0.95,
                 lineCap: "round",
                 dashArray: horizon === "14d" ? "10, 8" : undefined,
               }}
@@ -335,15 +369,15 @@ export default function MapWrapper({
             >
               <Tooltip sticky>
                 <div className="flex flex-col space-y-0.5">
-                  <span className="font-bold text-rose-400">Passur Marine Ingress Corridor</span>
-                  <span className="text-[10px] text-muted-foreground font-mono">Bay of Bengal → Mongla Port (&gt;8.0 dS/m)</span>
+                  <span className="font-bold text-rose-400 font-mono">Passur High-Salinity Front (&gt;7.0 dS/m)</span>
+                  <span className="text-[10px] text-muted-foreground">Mongla Port &rarr; Northern Sundarbans Gate</span>
                 </div>
               </Tooltip>
             </Polyline>
 
-            {/* Estuarine Transition Zone (4.0 - 8.0 dS/m Risk Front) */}
+            {/* Estuarine Transition Zone (Khulna Rupsha -> Rampal: 4.0 - 7.0 dS/m) */}
             <Polyline
-              positions={PASSUR_SALINITY_CORRIDOR.slice(3, 6)}
+              positions={KHULNA_PASSUR_CORRIDOR.slice(0, 5)}
               pathOptions={{
                 color: "#f59e0b",
                 weight: 5,
@@ -352,24 +386,24 @@ export default function MapWrapper({
                 dashArray: "8, 6",
               }}
               eventHandlers={{
-                click: () => onSelectCorridor && onSelectCorridor("Passur"),
+                click: () => onSelectCorridor && onSelectCorridor("Rupsha"),
               }}
             >
               <Tooltip sticky>
                 <div className="flex flex-col space-y-0.5">
-                  <span className="font-bold text-amber-400">Estuary Risk Front (4.0 - 8.0 dS/m)</span>
-                  <span className="text-[10px] text-muted-foreground font-mono">Mongla → Khulna Core Polders</span>
+                  <span className="font-bold text-amber-400 font-mono">Rupsha - Passur Saline Transition (4.0 - 7.0 dS/m)</span>
+                  <span className="text-[10px] text-muted-foreground">Khulna Urban Water Intake &rarr; Dacope &amp; Rampal</span>
                 </div>
               </Tooltip>
             </Polyline>
 
-            {/* Shibsa Western Ingress Corridor */}
+            {/* Western Khulna: Shibsa Mangrove Estuary */}
             <Polyline
-              positions={SHIBSA_CORRIDOR}
+              positions={KHULNA_SHIBSA_CORRIDOR}
               pathOptions={{
-                color: "#f59e0b",
+                color: "#38bdf8",
                 weight: 4,
-                opacity: 0.8,
+                opacity: 0.85,
                 lineCap: "round",
               }}
               eventHandlers={{
@@ -378,59 +412,38 @@ export default function MapWrapper({
             >
               <Tooltip sticky>
                 <div className="flex flex-col space-y-0.5">
-                  <span className="font-bold text-amber-400">Shibsa Mangrove Corridor</span>
-                  <span className="text-[10px] text-muted-foreground font-mono">Western Tidal Channel (4.2 dS/m)</span>
-                </div>
-              </Tooltip>
-            </Polyline>
-
-            {/* Gorai Freshwater Dilution Inflow (<2.0 dS/m) */}
-            <Polyline
-              positions={GORAI_FRESHWATER_CORRIDOR}
-              pathOptions={{
-                color: "#38bdf8",
-                weight: 5,
-                opacity: 0.85,
-                lineCap: "round",
-              }}
-              eventHandlers={{
-                click: () => onSelectCorridor && onSelectCorridor("Gorai"),
-              }}
-            >
-              <Tooltip sticky>
-                <div className="flex flex-col space-y-0.5">
-                  <span className="font-bold text-sky-400">Gorai Freshwater Buffer (&lt;2.0 dS/m)</span>
-                  <span className="text-[10px] text-muted-foreground font-mono">Ganges Dilution Outflow to Delta</span>
+                  <span className="font-bold text-sky-400 font-mono">Western Shibsa Tidal Reach (~4.2 dS/m)</span>
+                  <span className="text-[10px] text-muted-foreground">Paikgachha &amp; Western Khulna Tidal Belt</span>
                 </div>
               </Tooltip>
             </Polyline>
           </>
         )}
 
-        {/* Agricultural Threshold Isohalines (4.0 dS/m Hazard Boundary) */}
+        {/* Focused Agricultural Salinity Hazard Isohaline in Rampal/Dacope */}
         {showIsohalines && (
           <Circle
-            center={[22.55, 89.52]}
-            radius={18000}
+            center={[22.56, 89.58]}
+            radius={7500}
             pathOptions={{
               color: "#f59e0b",
               fillColor: "#f59e0b",
-              fillOpacity: 0.05,
+              fillOpacity: 0.08,
               weight: 1.5,
               dashArray: "4, 6",
             }}
           >
             <Tooltip sticky>
               <div className="flex flex-col space-y-0.5">
-                <span className="font-bold text-amber-400 font-mono">4.0 dS/m Agricultural Hazard Ring</span>
-                <span className="text-[10px] text-muted-foreground">Boro rice crops inside this zone face yield loss</span>
+                <span className="font-bold text-amber-400 font-mono">4.0 dS/m Boro Rice Hazard Boundary</span>
+                <span className="text-[10px] text-muted-foreground">Agricultural intake polders in Rampal &amp; Dacope</span>
               </div>
             </Tooltip>
           </Circle>
         )}
 
-        {/* Station and Reach Markers with Live Pill Badges */}
-        {filteredSites.map((site) => {
+        {/* Station and Reach Markers with Live Pill Badges (Strict Khulna Region) */}
+        {placedSites.map((site) => {
           const isSwot = site.id.startsWith("3124") || site.id.toLowerCase().includes("swot");
           const isSelected = selectedSiteId === site.id;
           const forecast = forecastMap[site.id];
@@ -465,7 +478,7 @@ export default function MapWrapper({
           return (
             <Marker
               key={site.id}
-              position={[site.latitude, site.longitude]}
+              position={[site.displayLat, site.displayLon]}
               icon={markerIcon}
               eventHandlers={{
                 click: () => {
