@@ -1,51 +1,401 @@
-import Link from 'next/link';
+import Link from "next/link";
+import {
+  Waves,
+  ArrowUpRight,
+  Radio,
+  Satellite,
+  Activity,
+  ShieldAlert,
+  ChevronRight,
+  Database,
+  Cpu,
+  Droplets,
+  Layers,
+  MapPin,
+} from "lucide-react";
 
 export default function Home() {
   return (
-    <main className="min-h-[100dvh] w-full flex flex-col items-center justify-center relative overflow-hidden px-4 py-24">
-      {/* Radial Gradient Background for Ethereal Glass vibe */}
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,rgba(50,200,255,0.05)_0%,rgba(5,5,5,1)_60%)]"></div>
-      
-      {/* Content */}
-      <div className="relative z-10 w-full max-w-5xl flex flex-col items-center text-center space-y-12">
-        
-        {/* Eyebrow */}
-        <div className="rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.2em] font-medium ring-1 ring-white/10 bg-white/5 backdrop-blur-md">
-          Research Prototype
+    <main className="min-h-[100dvh] w-full bg-[#05070d] text-foreground overflow-x-hidden selection:bg-primary selection:text-black">
+      {/* 1. FLOATING GLASS PILL NAVIGATION */}
+      <header className="fixed top-5 inset-x-0 z-50 flex justify-center px-4">
+        <nav className="w-full max-w-5xl h-14 rounded-full bg-[#08131f]/80 backdrop-blur-xl border border-white/10 px-5 flex items-center justify-between shadow-2xl">
+          {/* Brand */}
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary transition-transform duration-500 group-hover:scale-110">
+              <Waves className="w-4 h-4 text-primary" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold tracking-tight text-xs uppercase text-white font-mono">SWOT / Khulna</span>
+              <span className="text-[9px] text-muted-foreground font-mono">Delta Hydro-AI</span>
+            </div>
+          </Link>
+
+          {/* Navigation Links */}
+          <div className="hidden md:flex items-center gap-6 text-xs font-medium text-muted-foreground">
+            <Link href="#architecture" className="hover:text-white transition-colors">
+              Radar Architecture
+            </Link>
+            <Link href="#bento" className="hover:text-white transition-colors">
+              Data Pipeline
+            </Link>
+            <Link href="#impact" className="hover:text-white transition-colors">
+              Delta Hazard
+            </Link>
+            <Link href="/app/forecasts" className="hover:text-white transition-colors">
+              PINN Forecaster
+            </Link>
+          </div>
+
+          {/* Action Button */}
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[10px] text-emerald-400 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Orbit SW241-244</span>
+            </div>
+            
+            <Link
+              href="/app/map"
+              className="px-4 py-2 rounded-full bg-primary text-black font-semibold text-xs transition-all duration-300 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25 flex items-center gap-1.5"
+            >
+              <span>Launch Studio</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </nav>
+      </header>
+
+      {/* 2. ATTENTION (HERO): CINEMATIC WIDE 2-LINE HEADLINE */}
+      <section className="relative pt-36 pb-24 md:pt-48 md:pb-36 px-4 flex flex-col items-center text-center">
+        {/* Subtle Ambient Radial Wash */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[450px] bg-primary/10 rounded-full blur-[140px] pointer-events-none -z-10" />
+        <div className="absolute top-1/3 left-1/3 w-[500px] h-[350px] bg-sky-500/10 rounded-full blur-[160px] pointer-events-none -z-10" />
+
+        {/* Status Chip */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-muted-foreground backdrop-blur-md mb-8">
+          <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
+          <span className="font-mono text-white text-[11px]">NASA PO.DAAC & BWDB Synchronized</span>
         </div>
 
-        {/* Hero Title */}
-        <h1 className="text-5xl md:text-7xl font-semibold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60">
-          See Beneath the Surface.
+        {/* 2-Line Iron Rule H1 */}
+        <h1 className="w-full max-w-6xl text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white leading-[1.08] text-balance">
+          Surface Water Elevation{" "}
+          <span
+            className="inline-block w-16 sm:w-24 md:w-32 h-8 sm:h-12 md:h-14 rounded-full align-middle bg-cover bg-center mx-1.5 sm:mx-2 border border-primary/40 shadow-inner"
+            style={{
+              backgroundImage:
+                "url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=600&auto=format&fit=crop')",
+            }}
+          />{" "}
+          and Salinity Intelligence for the Khulna Delta.
         </h1>
-        
-        <h2 className="text-2xl md:text-3xl font-medium tracking-tight text-white/80 mt-4">
-          Understand the Water. Anticipate the Change.
-        </h2>
 
-        <p className="text-lg md:text-xl text-white/50 max-w-3xl mx-auto font-light mt-6">
-          Explore southwest Bangladesh through NASA SWOT observations, local hydrological measurements, and physics-informed modeling. Discover spatial patterns, investigate changing water levels, and explore experimental forecasts through one unified intelligence workspace.
+        {/* Subtitle */}
+        <p className="mt-8 text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl leading-relaxed font-normal text-balance">
+          Harmonizing NASA SWOT wide-swath Ka-band radar interferometry with BWDB tidal stage telemetry and physics-informed neural networks to forecast saltwater intrusion across southwest Bangladesh.
         </p>
 
-        {/* Outer Shell for interaction / Double Bezel */}
-        <div className="p-1.5 rounded-[2rem] bg-white/5 ring-1 ring-white/10 mt-8">
-          {/* Inner Core */}
-          <div className="bg-[#0A0A0A] rounded-[calc(2rem-0.375rem)] px-8 py-12 flex flex-col items-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)]">
-            <h2 className="text-xl text-white/80 mb-6">Explore the Hydrological Models</h2>
+        {/* High-Contrast CTAs */}
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+          <Link
+            href="/app/map"
+            className="px-7 py-3.5 rounded-full bg-primary text-black font-bold text-sm transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/30 flex items-center gap-2"
+          >
+            <span>Explore Spatial Studio</span>
+            <ArrowUpRight className="w-4 h-4" />
+          </Link>
+
+          <Link
+            href="/app/overview"
+            className="px-7 py-3.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-sm transition-all duration-300 backdrop-blur-md flex items-center gap-2"
+          >
+            <span>Telemetry Dashboard</span>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </Link>
+        </div>
+
+        {/* Real-time Delta Metrics Pill Bar */}
+        <div className="mt-16 w-full max-w-4xl p-1 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-left p-3">
+            <div className="flex flex-col p-3 rounded-xl bg-black/40 border border-white/5">
+              <span className="text-[10px] uppercase font-bold text-muted-foreground">Monitoring Sites</span>
+              <span className="text-xl font-bold font-mono text-white mt-0.5">20 Reaches</span>
+              <span className="text-[10px] text-emerald-400">16 BWDB + 4 SWOT</span>
+            </div>
+            <div className="flex flex-col p-3 rounded-xl bg-black/40 border border-white/5">
+              <span className="text-[10px] uppercase font-bold text-muted-foreground">Observed Passes</span>
+              <span className="text-xl font-bold font-mono text-white mt-0.5">831 Datapoints</span>
+              <span className="text-[10px] text-primary">Harmonized Hydrocron</span>
+            </div>
+            <div className="flex flex-col p-3 rounded-xl bg-black/40 border border-white/5">
+              <span className="text-[10px] uppercase font-bold text-muted-foreground">Critical Salinity</span>
+              <span className="text-xl font-bold font-mono text-rose-400 mt-0.5">7.9 dS/m</span>
+              <span className="text-[10px] text-rose-300/80">Mongla Port SW244</span>
+            </div>
+            <div className="flex flex-col p-3 rounded-xl bg-black/40 border border-white/5">
+              <span className="text-[10px] uppercase font-bold text-muted-foreground">PINN Forecast</span>
+              <span className="text-xl font-bold font-mono text-sky-400 mt-0.5">7 - 14 Days</span>
+              <span className="text-[10px] text-sky-300/80">Saint-Venant Loss Engine</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. TRUSTED MARQUEE: SPACE & HYDROLOGICAL INSTITUTIONS */}
+      <section className="py-12 border-y border-white/5 bg-black/30">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col items-center">
+          <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground mb-6">
+            Data Architecture Backed by Global Hydrology & Earth Observation Sources
+          </span>
+          <div className="w-full flex flex-wrap items-center justify-center gap-8 md:gap-14 opacity-70">
+            <span className="font-mono text-sm tracking-wider font-semibold text-white/90">NASA PO.DAAC</span>
+            <span className="font-mono text-sm tracking-wider font-semibold text-white/90">BWDB BANGLADESH</span>
+            <span className="font-mono text-sm tracking-wider font-semibold text-white/90">CNES FRANCE</span>
+            <span className="font-mono text-sm tracking-wider font-semibold text-white/90">COPERNICUS MARINE</span>
+            <span className="font-mono text-sm tracking-wider font-semibold text-white/90">CEGIS DHAKA</span>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. INTEREST: THE GAPLESS BENTO GRID (grid-flow-dense, zero dead cells) */}
+      <section id="bento" className="py-24 md:py-36 px-4 max-w-6xl mx-auto">
+        <div className="flex flex-col items-center text-center mb-16">
+          <span className="text-xs font-mono uppercase tracking-widest text-primary mb-3">System Architecture</span>
+          <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight text-balance">
+            Engineered to Solve the Ganges Delta Salinity Crisis.
+          </h2>
+          <p className="mt-4 text-sm md:text-base text-muted-foreground max-w-2xl text-balance">
+            During low-discharge dry months, upstream Gorai freshwater drops drastically, allowing seawater to penetrate 80km inland through Passur and Shibsa corridors.
+          </p>
+        </div>
+
+        {/* 4-Card Gapless Bento Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 grid-flow-dense">
+          
+          {/* Card 1: SWOT Ka-Band Radar (Spans 2 columns) */}
+          <div className="md:col-span-2 p-8 rounded-3xl bg-[#08131f]/90 border border-white/10 relative overflow-hidden flex flex-col justify-between group hover:border-primary/40 transition-all duration-500 shadow-xl">
+            <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-primary/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-primary/20 transition-all" />
             
-            <Link href="/app/overview" className="group relative rounded-full px-6 py-3 bg-white text-black font-medium transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[0.98] active:scale-[0.95] flex items-center space-x-4">
-              <span>Enter Workspace</span>
-              {/* Button-in-Button architecture */}
-              <div className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:translate-x-1 group-hover:-translate-y-[1px] group-hover:scale-105">
-                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-black">
-                  <path d="M3.64645 11.3536C3.45118 11.1583 3.45118 10.8417 3.64645 10.6464L10.2929 4H6C5.72386 4 5.5 3.77614 5.5 3.5C5.5 3.22386 5.72386 3 6 3H11.5C11.7761 3 12 3.22386 12 3.5V9C12 9.27614 11.7761 9.5 11.5 9.5C11.2239 9.5 11 9.27614 11 9V4.70711L4.35355 11.3536C4.15829 11.5488 3.84171 11.5488 3.64645 11.3536Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path>
-                </svg>
+            <div>
+              <div className="w-10 h-10 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary mb-6">
+                <Satellite className="w-5 h-5" />
               </div>
+              <span className="text-[11px] font-mono uppercase tracking-wider text-primary font-bold">NASA SWOT Satellite Telemetry</span>
+              <h3 className="text-2xl font-bold text-white mt-1">120km Wide-Swath Radar Interferometry</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed mt-2.5 max-w-lg">
+                KaRIn (Ka-band Radar Interferometer) measures water surface elevations at sub-centimeter vertical accuracy, resolving complex braided estuaries, polder canals, and river slopes that traditional altimeters miss.
+              </p>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-white/10 grid grid-cols-3 gap-3 text-left">
+              <div>
+                <span className="text-[10px] text-muted-foreground uppercase font-mono">Orbit Frequency</span>
+                <p className="text-sm font-bold text-white font-mono mt-0.5">21-Day Repeat</p>
+              </div>
+              <div>
+                <span className="text-[10px] text-muted-foreground uppercase font-mono">Spatial Reach</span>
+                <p className="text-sm font-bold text-white font-mono mt-0.5">SW241 - SW244</p>
+              </div>
+              <div>
+                <span className="text-[10px] text-muted-foreground uppercase font-mono">Accuracy</span>
+                <p className="text-sm font-bold text-white font-mono mt-0.5">&plusmn;1.2 cm</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: BWDB Automated Stage Gages (Spans 1 column) */}
+          <div className="p-8 rounded-3xl bg-[#08131f]/90 border border-white/10 relative overflow-hidden flex flex-col justify-between group hover:border-sky-500/40 transition-all duration-500 shadow-xl">
+            <div>
+              <div className="w-10 h-10 rounded-2xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400 mb-6">
+                <Activity className="w-5 h-5" />
+              </div>
+              <span className="text-[11px] font-mono uppercase tracking-wider text-sky-400 font-bold">In-Situ Ground Truth</span>
+              <h3 className="text-xl font-bold text-white mt-1">16 BWDB Tidal Gauges</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed mt-2.5">
+                Continuous automated river stage measurements harmonized from Talbaria, Kamarkhali, Mongla, and Khulna Rupsha monitoring stations.
+              </p>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between text-xs font-mono">
+              <span className="text-muted-foreground">Daily Observations</span>
+              <span className="text-sky-400 font-bold">100% Real Time</span>
+            </div>
+          </div>
+
+          {/* Card 3: PINN Physics Engine (Spans 1 column) */}
+          <div className="p-8 rounded-3xl bg-[#08131f]/90 border border-white/10 relative overflow-hidden flex flex-col justify-between group hover:border-amber-500/40 transition-all duration-500 shadow-xl">
+            <div>
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-6">
+                <Cpu className="w-5 h-5" />
+              </div>
+              <span className="text-[11px] font-mono uppercase tracking-wider text-amber-400 font-bold">Machine Intelligence</span>
+              <h3 className="text-xl font-bold text-white mt-1">PINN Hydro-Forecaster</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed mt-2.5">
+                Saint-Venant 1D shallow water momentum loss and advection-dispersion physics constraints prevent non-physical AI hallucinations during extreme dry seasons.
+              </p>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between text-xs font-mono">
+              <span className="text-muted-foreground">Lead Time Horizon</span>
+              <span className="text-amber-400 font-bold">7 to 14 Days</span>
+            </div>
+          </div>
+
+          {/* Card 4: Crop Protection Hazard (Spans 2 columns) */}
+          <div className="md:col-span-2 p-8 rounded-3xl bg-[#08131f]/90 border border-white/10 relative overflow-hidden flex flex-col justify-between group hover:border-rose-500/40 transition-all duration-500 shadow-xl">
+            <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-rose-500/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-rose-500/20 transition-all" />
+
+            <div>
+              <div className="w-10 h-10 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 mb-6">
+                <ShieldAlert className="w-5 h-5" />
+              </div>
+              <span className="text-[11px] font-mono uppercase tracking-wider text-rose-400 font-bold">Agricultural Protection</span>
+              <h3 className="text-2xl font-bold text-white mt-1">4.0 dS/m Boro Rice Salinity Boundary</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed mt-2.5 max-w-lg">
+                Over 1.8 million farming hectares in Khulna, Bagerhat, and Satkhira depend on surface canal water. When river salinity crosses 4.0 dS/m, grain yields collapse by over 60%. Our early warning triggers preemptive intake closures.
+              </p>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/40 text-xs font-mono font-bold">
+                  7 Breaches Active
+                </span>
+                <span className="text-xs text-muted-foreground font-mono">Mongla &bull; Rupsha &bull; Shibsa Corridor</span>
+              </div>
+              <Link
+                href="/app/alerts"
+                className="text-xs font-semibold text-rose-400 hover:text-rose-300 flex items-center gap-1"
+              >
+                <span>Audit Breach Telemetry</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* 5. DESIRE: ESTUARY HYDRODYNAMIC NARRATIVE */}
+      <section id="impact" className="py-24 md:py-36 border-t border-white/5 bg-[#03060c] px-4">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-12">
+          
+          <div className="flex-1 space-y-6 text-left">
+            <span className="text-xs font-mono uppercase tracking-widest text-primary">The Delta Dynamics</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight leading-tight">
+              Tidal Seawater vs. Upstream Dilution Flushes.
+            </h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              The southwest delta is an intricate battlefield between two opposing forces: the high-saline marine tidal pulse pushing inland from the Bay of Bengal through the Passur canyon, and the Gorai freshwater buffer flowing south from the Ganges.
+            </p>
+            <div className="space-y-3 pt-2">
+              <div className="flex items-start gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
+                <MapPin className="w-4 h-4 text-rose-400 mt-1 shrink-0" />
+                <div>
+                  <span className="text-xs font-bold text-white">Passur Marine Corridor</span>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Primary conduit carrying up to 18.2 dS/m salinity into Mongla Port and Khulna municipal water intakes.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
+                <Droplets className="w-4 h-4 text-sky-400 mt-1 shrink-0" />
+                <div>
+                  <span className="text-xs font-bold text-white">Gorai Freshwater Buffer</span>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Upstream Ganges distributary providing natural dilution to suppress the saltwater front below agricultural danger thresholds.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 w-full max-w-md p-1.5 rounded-3xl bg-white/5 border border-white/10 shadow-2xl">
+            <div className="rounded-[calc(1.5rem-2px)] overflow-hidden bg-[#08131f] p-6 space-y-5">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground font-bold">Simulated Salt Shock</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-mono">Scenario Mode</span>
+              </div>
+              <div className="space-y-3 text-xs">
+                <div className="flex justify-between items-center text-muted-foreground">
+                  <span>Upstream Gorai Discharge:</span>
+                  <span className="font-mono text-white font-bold">-40% Drought</span>
+                </div>
+                <div className="flex justify-between items-center text-muted-foreground">
+                  <span>Downstream Tidal Surge:</span>
+                  <span className="font-mono text-white font-bold">+0.8m Spring Tide</span>
+                </div>
+                <div className="flex justify-between items-center text-muted-foreground">
+                  <span>Saline Intrusion Distance:</span>
+                  <span className="font-mono text-rose-400 font-bold">+18.4 km Inland</span>
+                </div>
+                <div className="flex justify-between items-center text-muted-foreground">
+                  <span>Vulnerable Intakes:</span>
+                  <span className="font-mono text-amber-400 font-bold">Khulna Rupsha SW241</span>
+                </div>
+              </div>
+              <Link
+                href="/app/scenarios"
+                className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs text-center block transition-colors"
+              >
+                Run Custom Simulation &rarr;
+              </Link>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* 6. ACTION: MASSIVE HIGH-CONTRAST FINAL CTA */}
+      <section className="py-24 md:py-36 px-4 flex flex-col items-center text-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(87,214,208,0.1)_0%,rgba(5,7,13,0)_70%)] pointer-events-none" />
+
+        <div className="max-w-4xl mx-auto space-y-6 relative z-10">
+          <span className="text-xs font-mono uppercase tracking-widest text-primary font-bold">Launch Intelligence Studio</span>
+          <h2 className="text-4xl sm:text-6xl font-bold text-white tracking-tight leading-tight text-balance">
+            Start Exploring Southwest Delta Hydrology Now.
+          </h2>
+          <p className="text-base text-muted-foreground max-w-xl mx-auto text-balance">
+            Navigate all 20 synchronized reaches, inspect validated telemetry curves, toggle satellite basemaps, and test forward projections.
+          </p>
+          <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
+            <Link
+              href="/app/map"
+              className="px-8 py-4 rounded-full bg-primary text-black font-bold text-sm transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary/30 flex items-center gap-2"
+            >
+              <span>Open Map Explorer</span>
+              <ArrowUpRight className="w-4 h-4" />
+            </Link>
+            <Link
+              href="/app/overview"
+              className="px-8 py-4 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold text-sm transition-colors"
+            >
+              <span>View Regional Overview</span>
             </Link>
           </div>
         </div>
+      </section>
 
-      </div>
+      {/* 7. CLEAN EDITORIAL FOOTER */}
+      <footer className="py-12 border-t border-white/10 bg-[#03060c] px-4 text-xs text-muted-foreground">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2.5">
+            <Waves className="w-4 h-4 text-primary" />
+            <span className="font-mono text-white uppercase font-bold tracking-tight">SWOT Khulna Platform</span>
+            <span className="text-muted-foreground/50">&bull;</span>
+            <span>NASA SWOT & BWDB Hydrological Intelligence</span>
+          </div>
+
+          <div className="flex items-center gap-6 text-[11px]">
+            <Link href="/app/map" className="hover:text-white transition-colors">Map Explorer</Link>
+            <Link href="/app/forecasts" className="hover:text-white transition-colors">Forecasts</Link>
+            <Link href="/app/scenarios" className="hover:text-white transition-colors">Scenarios</Link>
+            <Link href="/app/alerts" className="hover:text-white transition-colors">Delta Alerts</Link>
+            <Link href="/app/reports" className="hover:text-white transition-colors">Audit Reports</Link>
+          </div>
+
+          <span className="font-mono text-[10px] text-muted-foreground/60">
+            Open-Source Hydro-AI &copy; 2026
+          </span>
+        </div>
+      </footer>
     </main>
   );
 }
