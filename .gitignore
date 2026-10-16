@@ -8,3 +8,4 @@ khulna.db
 *.pyc
 *.egg-info/
 .next/
+*.png
